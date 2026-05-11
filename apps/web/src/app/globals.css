@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --primary: 199 89% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .live-badge {
+    @apply inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white;
+  }
+
+  .live-badge::before {
+    content: '';
+    @apply h-1.5 w-1.5 rounded-full bg-white animate-live-pulse;
+  }
+
+  .score-card {
+    @apply flex items-center justify-between rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 hover:shadow-md transition-shadow;
+  }
+
+  .stat-bar {
+    @apply h-2 rounded-full bg-gray-200 dark:bg-gray-700;
+  }
+
+  .stat-bar-fill {
+    @apply h-full rounded-full bg-primary-500 transition-all duration-500;
+  }
+
+  .ad-container {
+    @apply flex items-center justify-center min-h-[90px] bg-gray-50 dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden;
+  }
+}

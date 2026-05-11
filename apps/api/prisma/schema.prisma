@@ -1,0 +1,401 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+
+model User {
+  id                String              @id @default(cuid())
+  email             String              @unique
+  username          String              @unique
+  passwordHash      String?
+  displayName       String?
+  avatar            String?
+  role              UserRole            @default(USER)
+  provider          AuthProvider        @default(LOCAL)
+  googleId          String?
+  isPremium         Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  favoriteTeams     UserFavoriteTeam[]
+  favoriteLeagues   UserFavoriteLeague[]
+  notifPrefs        NotificationPreference?
+  sessions          UserSession[]
+
+  @@map("users")
+}
+
+model UserSession {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+// ─── Leagues ──────────────────────────────────────────────────────────────────
+
+model League {
+  id          String   @id @default(cuid())
+  externalId  String   @unique
+  name        String
+  slug        String   @unique
+  logo        String?
+  country     String?
+  season      Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teams       Team[]
+  matches     Match[]
+  favorites   UserFavoriteLeague[]
+
+  @@map("leagues")
+}
+
+model UserFavoriteLeague {
+  userId   String
+  leagueId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  league   League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  @@id([userId, leagueId])
+  @@map("user_favorite_leagues")
+}
+
+// ─── Teams ────────────────────────────────────────────────────────────────────
+
+model Team {
+  id          String   @id @default(cuid())
+  externalId  String   @unique
+  name        String
+  slug        String   @unique
+  shortName   String?
+  logo        String?
+  country     String?
+  leagueId    String?
+  venue       String?
+  founded     Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  league      League?  @relation(fields: [leagueId], references: [id])
+  players     Player[]
+  homeMatches Match[]  @relation("HomeTeam")
+  awayMatches Match[]  @relation("AwayTeam")
+  favorites   UserFavoriteTeam[]
+
+  @@map("teams")
+}
+
+model UserFavoriteTeam {
+  userId String
+  teamId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@id([userId, teamId])
+  @@map("user_favorite_teams")
+}
+
+// ─── Players ──────────────────────────────────────────────────────────────────
+
+model Player {
+  id          String   @id @default(cuid())
+  externalId  String   @unique
+  teamId      String?
+  name        String
+  slug        String   @unique
+  position    String?
+  nationality String?
+  photo       String?
+  age         Int?
+  number      Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  team        Team?    @relation(fields: [teamId], references: [id])
+  stats       PlayerStat[]
+
+  @@map("players")
+}
+
+model PlayerStat {
+  id           String  @id @default(cuid())
+  playerId     String
+  matchId      String?
+  season       Int
+  goals        Int     @default(0)
+  assists      Int     @default(0)
+  appearances  Int     @default(0)
+  yellowCards  Int     @default(0)
+  redCards     Int     @default(0)
+  rating       Float?
+  minutesPlayed Int    @default(0)
+
+  player       Player  @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  match        Match?  @relation(fields: [matchId], references: [id])
+
+  @@map("player_stats")
+}
+
+// ─── Matches ──────────────────────────────────────────────────────────────────
+
+model Match {
+  id           String      @id @default(cuid())
+  externalId   String      @unique
+  homeTeamId   String
+  awayTeamId   String
+  leagueId     String
+  slug         String      @unique
+  status       MatchStatus @default(SCHEDULED)
+  kickoffAt    DateTime
+  homeScore    Int?
+  awayScore    Int?
+  venue        String?
+  round        String?
+  season       Int?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  homeTeam     Team        @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam     Team        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  league       League      @relation(fields: [leagueId], references: [id])
+  stats        MatchStat?
+  events       MatchEvent[]
+  lineups      MatchLineup[]
+  prediction   Prediction?
+  aiArticle    AiArticle?
+  playerStats  PlayerStat[]
+  adImpressions AdImpression[]
+
+  @@map("matches")
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  HALF_TIME
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+model MatchStat {
+  id                  String @id @default(cuid())
+  matchId             String @unique
+  homePossession      Int?
+  awayPossession      Int?
+  homeShots           Int?
+  awayShots           Int?
+  homeShotsOnTarget   Int?
+  awayShotsOnTarget   Int?
+  homeCorners         Int?
+  awayCorners         Int?
+  homeFouls           Int?
+  awayFouls           Int?
+  homeYellowCards     Int?
+  awayYellowCards     Int?
+  homeRedCards        Int?
+  awayRedCards        Int?
+  homeOffsides        Int?
+  awayOffsides        Int?
+
+  match               Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("match_stats")
+}
+
+model MatchEvent {
+  id        String          @id @default(cuid())
+  matchId   String
+  minute    Int
+  type      MatchEventType
+  teamId    String?
+  playerId  String?
+  detail    String?
+  createdAt DateTime        @default(now())
+
+  match     Match           @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("match_events")
+}
+
+enum MatchEventType {
+  GOAL
+  OWN_GOAL
+  YELLOW_CARD
+  RED_CARD
+  SUBSTITUTION
+  VAR
+  PENALTY_MISSED
+  PENALTY_SCORED
+}
+
+model MatchLineup {
+  id        String @id @default(cuid())
+  matchId   String
+  teamId    String
+  playerId  String
+  position  String?
+  number    Int?
+  isStarter Boolean @default(true)
+
+  match     Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("match_lineups")
+}
+
+// ─── Predictions ─────────────────────────────────────────────────────────────
+
+model Prediction {
+  id                  String   @id @default(cuid())
+  matchId             String   @unique
+  winProbabilityHome  Float
+  winProbabilityDraw  Float
+  winProbabilityAway  Float
+  overUnderLine       Float    @default(2.5)
+  overProbability     Float?
+  underProbability    Float?
+  confidenceScore     Float
+  formAnalysis        Json?
+  h2hAnalysis         Json?
+  modelVersion        String   @default("v1")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  match               Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("predictions")
+}
+
+// ─── AI Articles ─────────────────────────────────────────────────────────────
+
+model AiArticle {
+  id          String          @id @default(cuid())
+  matchId     String?         @unique
+  type        AiArticleType   @default(MATCH_SUMMARY)
+  title       String
+  slug        String          @unique
+  content     String
+  summary     String?
+  keywords    String[]
+  language    String          @default("id")
+  isPublished Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  match       Match?          @relation(fields: [matchId], references: [id])
+
+  @@map("ai_articles")
+}
+
+enum AiArticleType {
+  MATCH_SUMMARY
+  MATCH_PREVIEW
+  TEAM_ANALYSIS
+  PLAYER_SPOTLIGHT
+  LEAGUE_ROUNDUP
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model NotificationPreference {
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  goalAlerts      Boolean @default(true)
+  matchStart      Boolean @default(true)
+  matchReminder   Boolean @default(true)
+  aiPredictions   Boolean @default(true)
+  breakingNews    Boolean @default(false)
+  fcmToken        String?
+  oneSignalId     String?
+
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model PushNotification {
+  id          String               @id @default(cuid())
+  title       String
+  body        String
+  type        NotificationType
+  matchId     String?
+  targetUsers String[]
+  sentCount   Int                  @default(0)
+  createdAt   DateTime             @default(now())
+
+  @@map("push_notifications")
+}
+
+enum NotificationType {
+  GOAL
+  MATCH_START
+  MATCH_REMINDER
+  MATCH_RESULT
+  AI_PREDICTION
+  BREAKING_NEWS
+}
+
+// ─── Ads ─────────────────────────────────────────────────────────────────────
+
+model AdPlacement {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  slot        String
+  position    AdPosition
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+
+  impressions AdImpression[]
+
+  @@map("ad_placements")
+}
+
+enum AdPosition {
+  ABOVE_FOLD
+  MID_CONTENT
+  STICKY_FOOTER
+  SIDEBAR
+  INLINE
+}
+
+model AdImpression {
+  id          String   @id @default(cuid())
+  placementId String
+  matchId     String?
+  sessionId   String?
+  userId      String?
+  country     String?
+  device      String?
+  createdAt   DateTime @default(now())
+
+  placement   AdPlacement @relation(fields: [placementId], references: [id])
+  match       Match?      @relation(fields: [matchId], references: [id])
+
+  @@map("ad_impressions")
+}

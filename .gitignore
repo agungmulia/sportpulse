@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+.next
+out
+build
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime
+.DS_Store
+Thumbs.db
+
+# Turbo
+.turbo
+
+# Prisma
+prisma/migrations/**/migration_lock.toml
+
+# Coverage
+coverage
+
+# Docker
+.docker-volumes
+
+# IDE
+.idea
+.vscode
+*.sublime-project
+*.sublime-workspace
