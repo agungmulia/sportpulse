@@ -9,6 +9,6 @@ import { PromptBuilderService } from './prompt-builder.service';
   imports: [BullModule.registerQueue({ name: 'ai-generation' })],
   controllers: [AiController],
   providers: [AiService, AiProcessor, PromptBuilderService],
-  exports: [AiService],
+  exports: [AiService, PromptBuilderService],
 })
 export class AiModule {}

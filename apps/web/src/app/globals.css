@@ -27,11 +27,8 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-50;
   }
 }
 

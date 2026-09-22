@@ -28,11 +28,11 @@ export class AdsService {
     });
 
     const placements = await this.prisma.adPlacement.findMany({
-      where: { id: { in: impressions.map((i) => i.placementId) } },
+      where: { id: { in: impressions.map((i: { placementId: string; _count: { id: number } }) => i.placementId) } },
     });
 
-    return impressions.map((imp) => ({
-      placement: placements.find((p) => p.id === imp.placementId),
+    return impressions.map((imp: { placementId: string; _count: { id: number } }) => ({
+      placement: placements.find((p: { id: string }) => p.id === imp.placementId),
       impressions: imp._count.id,
     }));
   }

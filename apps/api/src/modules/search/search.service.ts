@@ -38,7 +38,7 @@ export class SearchService {
         select: { id: true },
         take: 10,
       });
-      const teamIds = teams.map((t) => t.id);
+      const teamIds = teams.map((t: { id: string }) => t.id);
 
       results.matches = await this.prisma.match.findMany({
         where: {
@@ -80,9 +80,9 @@ export class SearchService {
     ]);
 
     return {
-      teams: teams.map((t) => ({ ...t, type: 'team' })),
-      leagues: leagues.map((l) => ({ ...l, type: 'league' })),
-      players: players.map((p) => ({ ...p, type: 'player' })),
+      teams: teams.map((t: object) => ({ ...t, type: 'team' })),
+      leagues: leagues.map((l: object) => ({ ...l, type: 'league' })),
+      players: players.map((p: object) => ({ ...p, type: 'player' })),
     };
   }
 }

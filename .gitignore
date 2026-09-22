@@ -15,6 +15,8 @@ build
 .env.local
 .env.*.local
 !.env.example
+apps/**/.env
+apps/**/.env.local
 
 # Logs
 logs
@@ -44,3 +46,7 @@ coverage
 .vscode
 *.sublime-project
 *.sublime-workspace
+
+# Claude Code
+CLAUDE.md
+.claude/

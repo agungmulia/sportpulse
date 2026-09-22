@@ -1,6 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { $Enums } from '@prisma/client';
 import { MatchSyncService } from './match-sync.service';
 import { MatchGateway } from './match.gateway';
 import { PrismaService } from '../../database/prisma.service';
@@ -59,16 +60,16 @@ export class MatchSyncProcessor extends WorkerHost {
     // Sync upcoming fixtures — placeholder for full implementation
   }
 
-  private mapStatus(short: string): string {
-    const map: Record<string, string> = {
-      '1H': 'LIVE',
-      '2H': 'LIVE',
-      'HT': 'HALF_TIME',
-      'FT': 'FINISHED',
-      'NS': 'SCHEDULED',
-      'PST': 'POSTPONED',
-      'CANC': 'CANCELLED',
+  private mapStatus(short: string): $Enums.MatchStatus {
+    const map: Record<string, $Enums.MatchStatus> = {
+      '1H': $Enums.MatchStatus.LIVE,
+      '2H': $Enums.MatchStatus.LIVE,
+      'HT': $Enums.MatchStatus.HALF_TIME,
+      'FT': $Enums.MatchStatus.FINISHED,
+      'NS': $Enums.MatchStatus.SCHEDULED,
+      'PST': $Enums.MatchStatus.POSTPONED,
+      'CANC': $Enums.MatchStatus.CANCELLED,
     };
-    return map[short] ?? 'SCHEDULED';
+    return map[short] ?? $Enums.MatchStatus.SCHEDULED;
   }
 }

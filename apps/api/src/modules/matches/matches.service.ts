@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { $Enums } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { MatchStatus } from '@prisma/client';
+
+const LIVE_STATUSES: $Enums.MatchStatus[] = [$Enums.MatchStatus.LIVE, $Enums.MatchStatus.HALF_TIME];
 
 @Injectable()
 export class MatchesService {
@@ -8,7 +10,7 @@ export class MatchesService {
 
   async findLive() {
     return this.prisma.match.findMany({
-      where: { status: { in: [MatchStatus.LIVE, MatchStatus.HALF_TIME] } },
+      where: { status: { in: LIVE_STATUSES } },
       include: this.matchIncludes(),
       orderBy: { kickoffAt: 'asc' },
     });
@@ -67,7 +69,7 @@ export class MatchesService {
 
     return this.prisma.match.findMany({
       where: {
-        status: MatchStatus.SCHEDULED,
+        status: $Enums.MatchStatus.SCHEDULED,
         kickoffAt: { gte: now, lte: end },
       },
       include: this.matchIncludes(),

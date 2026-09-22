@@ -19,29 +19,29 @@ export class SeoService {
       this.prisma.player.findMany({ select: { slug: true, updatedAt: true }, take: 5000 }),
     ]);
 
-    const urls = [
+    const urls: { loc: string; priority: string; changefreq: string; lastmod?: string }[] = [
       { loc: baseUrl, priority: '1.0', changefreq: 'hourly' },
       { loc: `${baseUrl}/live`, priority: '0.9', changefreq: 'always' },
       { loc: `${baseUrl}/predictions`, priority: '0.8', changefreq: 'daily' },
-      ...matches.map((m) => ({
+      ...matches.map((m: { slug: string; updatedAt: Date }) => ({
         loc: `${baseUrl}/match/${m.slug}`,
         priority: '0.7',
         changefreq: 'hourly',
         lastmod: m.updatedAt.toISOString(),
       })),
-      ...teams.map((t) => ({
+      ...teams.map((t: { slug: string; updatedAt: Date }) => ({
         loc: `${baseUrl}/team/${t.slug}`,
         priority: '0.6',
         changefreq: 'daily',
         lastmod: t.updatedAt.toISOString(),
       })),
-      ...leagues.map((l) => ({
+      ...leagues.map((l: { slug: string; updatedAt: Date }) => ({
         loc: `${baseUrl}/league/${l.slug}`,
         priority: '0.6',
         changefreq: 'daily',
         lastmod: l.updatedAt.toISOString(),
       })),
-      ...players.map((p) => ({
+      ...players.map((p: { slug: string; updatedAt: Date }) => ({
         loc: `${baseUrl}/player/${p.slug}`,
         priority: '0.5',
         changefreq: 'weekly',
